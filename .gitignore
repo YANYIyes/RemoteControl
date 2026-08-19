@@ -1,0 +1,24 @@
+# ===== 签名密钥 (绝不可公开!) =====
+*.keystore
+keystore.properties
+android/remote-control.keystore
+android/keystore.properties
+
+# ===== 运行时数据 / 日志 =====
+server/whitelist.json
+server/qq_queue/
+server/*.log
+server/node_modules/
+
+# ===== 构建产物 =====
+android/build/
+android/app/build/
+android/local.properties
+android/.gradle/
+.idea/
+*.iml
+
+# ===== 系统 =====
+Thumbs.db
+Desktop.ini
+.DS_Store

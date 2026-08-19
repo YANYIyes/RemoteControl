@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">远程控制</string>
+
+    <!-- 设置 -->
+    <string name="setting_server_hint">服务器地址，如 wss://你的域名或IP:8899（例 wss://remote.example.com）</string>
+    <string name="setting_serial_hint">设备唯一标识（自动生成）</string>
+
+    <!-- 状态 -->
+    <string name="status_connected">已连接</string>
+    <string name="status_connecting">连接中…</string>
+    <string name="status_disconnected">未连接</string>
+    <string name="status_pending_auth">待授权绑定</string>
+    <string name="status_rejected">被拒绝</string>
+
+    <!-- 按钮 -->
+    <string name="btn_connect">连接</string>
+    <string name="btn_disconnect">断开</string>
+    <string name="btn_shutdown">关机</string>
+    <string name="btn_reboot">重启</string>
+    <string name="btn_confirm">确认</string>
+    <string name="btn_cancel">取消</string>
+
+    <!-- 提示 -->
+    <string name="dialog_title_confirm">确认操作</string>
+    <string name="shutdown_confirm_msg">确定要远程关闭电脑吗？</string>
+    <string name="reboot_confirm_msg">确定要远程重启电脑吗？</string>
+</resources>
