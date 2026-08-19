@@ -1,0 +1,19 @@
+# 换行符规范: 文本文件统一 LF, 避免 Windows CRLF 造成无意义 diff
+* text=auto
+
+# 脚本/源码强制 LF (跨平台一致)
+*.ps1 text eol=lf
+*.js text eol=lf
+*.kt text eol=lf
+*.xml text eol=lf
+*.kts text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+gradlew text eol=lf
+
+# 二进制文件不转换
+*.apk binary
+*.keystore binary
+*.jar binary
+*.png binary
+*.jpg binary
