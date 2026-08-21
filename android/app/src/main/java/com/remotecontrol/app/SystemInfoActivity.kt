@@ -18,6 +18,7 @@ class SystemInfoActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppTheme.apply(this) // v2.0: 应用配色
         setContentView(R.layout.activity_sysinfo)
 
         tvInfo = findViewById(R.id.tvSysInfo)

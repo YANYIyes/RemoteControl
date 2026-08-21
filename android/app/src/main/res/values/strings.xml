@@ -3,8 +3,8 @@
     <string name="app_name">远程控制</string>
 
     <!-- 设置 -->
-    <string name="setting_server_hint">服务器地址，如 wss://你的域名或IP:8899（例 wss://remote.example.com）</string>
-    <string name="setting_serial_hint">设备唯一标识（自动生成）</string>
+    <string name="setting_server_hint">服务器地址，如 wss://remote.641188.xyz</string>
+    <string name="settings_serial_hint">设备序列号（自动生成，用于服务器端绑定授权）</string>
 
     <!-- 状态 -->
     <string name="status_connected">已连接</string>
@@ -25,4 +25,56 @@
     <string name="dialog_title_confirm">确认操作</string>
     <string name="shutdown_confirm_msg">确定要远程关闭电脑吗？</string>
     <string name="reboot_confirm_msg">确定要远程重启电脑吗？</string>
+
+    <!-- ===== v2.0 ===== -->
+    <!-- 设置界面 -->
+    <string name="action_settings">设置</string>
+    <string name="settings_title">设置</string>
+    <string name="settings_section_general">通用</string>
+    <string name="settings_remember_server">记住服务器地址</string>
+    <string name="settings_remember_server_sum">下次打开自动填入上次地址</string>
+    <string name="settings_section_theme">主题配色</string>
+    <string name="settings_theme_blue">蓝色 (默认)</string>
+    <string name="settings_theme_purple">紫色</string>
+    <string name="settings_theme_green">绿色</string>
+    <string name="settings_theme_orange">橙色</string>
+    <string name="settings_theme_night">深色</string>
+    <string name="settings_section_permission">权限</string>
+    <string name="settings_notify">启用通知</string>
+    <string name="settings_notify_sum">接收 CPU 告警 / 进程消失 / 定时关机提醒</string>
+    <string name="settings_background">后台常驻</string>
+    <string name="settings_background_sum">保持前台服务连接，通知可自行关闭</string>
+    <string name="settings_cpu_alert">CPU 告警推送</string>
+    <string name="settings_cpu_alert_sum">CPU 持续高负载时推送通知</string>
+    <string name="settings_proc_alert">进程消失告警</string>
+    <string name="settings_proc_alert_sum">关注的进程停止时推送通知</string>
+
+    <string name="settings_alert_switch">告警总开关</string>
+    <string name="settings_alert_switch_sum">关闭后不再接收任何告警推送</string>
+
+    <!-- 定时关机 -->
+    <string name="action_schedule_shutdown">定时关机</string>
+    <string name="schedule_dialog_title">定时关机</string>
+    <string name="schedule_daily">每天</string>
+    <string name="schedule_once">一次性</string>
+    <string name="schedule_set">设定</string>
+    <string name="schedule_cancel">取消定时</string>
+    <string name="schedule_hour">时</string>
+    <string name="schedule_minute">分</string>
+
+    <!-- 监控进程 -->
+    <string name="action_monitor">进程监控</string>
+    <string name="monitor_title">进程监控</string>
+    <string name="monitor_add">添加</string>
+    <string name="monitor_remove">移除</string>
+    <string name="monitor_hint">输入进程名，如 chrome.exe</string>
+
+    <!-- 通知渠道 -->
+    <string name="channel_monitor">监控告警</string>
+    <string name="channel_foreground">后台运行</string>
+
+    <!-- 前台服务通知 -->
+    <string name="notif_foreground_title">远程控制运行中</string>
+    <string name="notif_foreground_text">后台连接已保持，点击打开 App</string>
+    <string name="notif_foreground_stop">停止后台</string>
 </resources>

@@ -25,6 +25,9 @@ class WsClient(private val context: Context) {
 
     var listener: Listener? = null
 
+    /** v2.0: 服务端主动推送监听 (CPU 告警/进程消失/定时关机提醒), 由 MonitorService 注册 */
+    var pushListener: ((JSONObject) -> Unit)? = null
+
     private var client: OkHttpClient? = null
     private var ws: WebSocket? = null
     private var scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -183,6 +186,11 @@ class WsClient(private val context: Context) {
                     listener?.onStatus("error", msg.optString("error"))
                 }
                 else -> {
+                    // v2.0: 服务端主动推送 (push.*), 转发给 pushListener
+                    if (msg.optString("type").startsWith("push.")) {
+                        pushListener?.invoke(msg)
+                        return
+                    }
                     // 业务响应: 带 seq 则可精确匹配; 否则按 type 匹配
                     if (msg.has("seq")) {
                         val sKey = msg.optLong("seq").toString()
@@ -246,5 +254,27 @@ class WsClient(private val context: Context) {
 
     fun screenStop() {
         sendFlat(++seqCounter, "screen.stop", JSONObject())
+    }
+
+    // ========== v2.0: 推送/监控/定时关机 ==========
+
+    /** 同步告警配置到服务端 (CPU/进程/总开关) */
+    suspend fun setPushConfig(cfg: JSONObject): JSONObject {
+        return request("push.setConfig", JSONObject().put("config", cfg))
+    }
+
+    /** 设置定时关机: time = "HH:MM" (每天) 或 ISO 时间(一次性) */
+    suspend fun addSchedule(time: String): JSONObject {
+        return request("push.addSchedule", JSONObject().put("time", time))
+    }
+
+    /** 查看定时关机 */
+    suspend fun listSchedules(): JSONObject {
+        return request("push.listSchedules")
+    }
+
+    /** 取消定时关机 */
+    suspend fun cancelSchedule(): JSONObject {
+        return request("push.cancelSchedule")
     }
 }

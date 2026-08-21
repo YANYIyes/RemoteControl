@@ -1,5 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 基础 -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- v2.0: 主题配色方案 (可切换) -->
+    <!-- 蓝色 (默认) -->
+    <color name="theme_blue_primary">#FF3D5AFE</color>
+    <color name="theme_blue_dark">#FF304FFE</color>
+    <color name="theme_blue_accent">#FF1976D2</color>
+    <color name="theme_blue_status">#FF304FFE</color>
+
+    <!-- 紫色 -->
+    <color name="theme_purple_primary">#FF5E35B1</color>
+    <color name="theme_purple_dark">#FF4527A0</color>
+    <color name="theme_purple_accent">#FF7C4DFF</color>
+    <color name="theme_purple_status">#FF4527A0</color>
+
+    <!-- 绿色 -->
+    <color name="theme_green_primary">#FF00897B</color>
+    <color name="theme_green_dark">#FF00695C</color>
+    <color name="theme_green_accent">#FF26A69A</color>
+    <color name="theme_green_status">#FF00695C</color>
+
+    <!-- 橙色 -->
+    <color name="theme_orange_primary">#FFD84315</color>
+    <color name="theme_orange_dark">#FFBF360C</color>
+    <color name="theme_orange_accent">#FFFF7043</color>
+    <color name="theme_orange_status">#FFBF360C</color>
+
+    <!-- 深色 (黑) -->
+    <color name="theme_night_primary">#FF212121</color>
+    <color name="theme_night_dark">#FF000000</color>
+    <color name="theme_night_accent">#FF424242</color>
+    <color name="theme_night_status">#FF000000</color>
 </resources>

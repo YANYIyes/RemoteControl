@@ -1,8 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
+    <!-- v2.0: 可切换主题配色。运行时按设置改用对应 theme_xxx -->
+
+    <!-- 蓝色 (默认) -->
     <style name="Theme.RemoteControl" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/ic_launcher_background</item>
-        <item name="android:statusBarColor">@color/ic_launcher_background</item>
+        <item name="colorPrimary">@color/theme_blue_primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="android:statusBarColor">@color/theme_blue_status</item>
+    </style>
+
+    <!-- 紫色 -->
+    <style name="Theme.RemoteControl.Purple" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/theme_purple_primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="android:statusBarColor">@color/theme_purple_status</item>
+    </style>
+
+    <!-- 绿色 -->
+    <style name="Theme.RemoteControl.Green" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/theme_green_primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="android:statusBarColor">@color/theme_green_status</item>
+    </style>
+
+    <!-- 橙色 -->
+    <style name="Theme.RemoteControl.Orange" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/theme_orange_primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="android:statusBarColor">@color/theme_orange_status</item>
+    </style>
+
+    <!-- 深色 -->
+    <style name="Theme.RemoteControl.Night" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/theme_night_primary</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="android:statusBarColor">@color/theme_night_status</item>
     </style>
 </resources>

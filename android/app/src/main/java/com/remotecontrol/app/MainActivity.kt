@@ -1,11 +1,16 @@
 package com.remotecontrol.app
 
+import android.Manifest
 import android.content.SharedPreferences
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -29,14 +34,16 @@ class MainActivity : AppCompatActivity(), WsClient.Listener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppTheme.apply(this) // v2.0: 应用配色
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         prefs = getSharedPreferences("rc_settings", MODE_PRIVATE)
         ws.listener = this
 
-        // 恢复服务器地址
-        val savedUrl = prefs.getString("server_url", "wss://YOUR_SERVER:8899") ?: ""
+        // v2.0: 恢复服务器地址 (受"记住服务器"开关控制)
+        val remember = prefs.getBoolean("remember_server", true)
+        val savedUrl = if (remember) (prefs.getString("server_url", "wss://remote.641188.xyz") ?: "wss://remote.641188.xyz") else "wss://remote.641188.xyz"
         binding.etServer.setText(savedUrl)
         binding.tvSerial.text = "设备序列号: ${ws.deviceSerial()}"
         binding.tvDevice.text = "${android.os.Build.MODEL} / ${android.os.Build.MANUFACTURER}   v${BuildConfig.VERSION_NAME}"
@@ -44,6 +51,7 @@ class MainActivity : AppCompatActivity(), WsClient.Listener {
         setupProcessList()
         setupActions()
         updateConnectionUI(false)
+        requestNotificationPermission() // v2.0: Android 13+ 首次请求通知权限
     }
 
     override fun onDestroy() {
@@ -87,10 +95,24 @@ class MainActivity : AppCompatActivity(), WsClient.Listener {
         binding.btnReboot.setOnClickListener {
             confirmSystem("确定要远程重启电脑吗？") { ws.reboot() }
         }
+        // v2.0: 定时关机
+        binding.btnSchedule.setOnClickListener { showScheduleDialog() }
         binding.btnRefresh.setOnClickListener { loadProcesses(binding.etSearch.text.toString().trim()) }
         binding.btnSystemInfo.setOnClickListener { startActivity(Intent(this, SystemInfoActivity::class.java)) }
         binding.btnFiles.setOnClickListener { startActivity(Intent(this, FileBrowserActivity::class.java)) }
         binding.btnScreen.setOnClickListener { startActivity(Intent(this, ScreenActivity::class.java)) }
+        // v2.0: 设置入口
+        binding.btnSettings.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
+    }
+
+    // v2.0: Android 13+ 请求通知权限 (首次启动)
+    private val notifPerm = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(
+                this, Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED) {
+            notifPerm.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     private fun confirmSystem(msg: String, action: suspend () -> JSONObject) {
@@ -108,6 +130,49 @@ class MainActivity : AppCompatActivity(), WsClient.Listener {
                 }
             }
             .setNegativeButton("取消", null)
+            .show()
+    }
+
+    // v2.0: 定时关机对话框 (HH:MM 每天) + 取消
+    private fun showScheduleDialog() {
+        val items = arrayOf("设定每天定时关机", "取消定时关机")
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.schedule_dialog_title))
+            .setItems(items) { _, which ->
+                when (which) {
+                    0 -> pickScheduleTime()
+                    1 -> lifecycleScope.launch {
+                        try {
+                            val r = ws.cancelSchedule()
+                            showToast(if (r.optBoolean("ok", false)) "已取消定时关机" else (r.optString("error", "取消失败")))
+                        } catch (e: Exception) { showToast(e.message ?: "取消失败") }
+                    }
+                }
+            }
+            .setNegativeButton(getString(R.string.btn_cancel), null)
+            .show()
+    }
+
+    // 时间输入 (HH:MM 每天) → 设定定时关机
+    private fun pickScheduleTime() {
+        val et = EditText(this).apply {
+            hint = "如 23:00 (每天)"
+            inputType = InputType.TYPE_CLASS_TEXT
+        }
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.schedule_daily))
+            .setView(et)
+            .setPositiveButton(getString(R.string.schedule_set)) { _, _ ->
+                val time = et.text.toString().trim()
+                if (time.isEmpty()) { showToast("请输入时间"); return@setPositiveButton }
+                lifecycleScope.launch {
+                    try {
+                        val r = ws.addSchedule(time)
+                        showToast(if (r.optBoolean("ok", false)) r.optString("message", "已设定") else (r.optString("error", "设定失败")))
+                    } catch (e: Exception) { showToast(e.message ?: "设定失败") }
+                }
+            }
+            .setNegativeButton(getString(R.string.btn_cancel), null)
             .show()
     }
 

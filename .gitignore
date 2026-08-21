@@ -18,7 +18,13 @@ android/.gradle/
 .idea/
 *.iml
 
+# ===== 未完成项目(fastdesk, 暂不提交, 完成后单独提) =====
+fastdesk-delivery/
+
 # ===== 系统 =====
+Thumbs.db
+Desktop.ini
+.DS_Store
 Thumbs.db
 Desktop.ini
 .DS_Store

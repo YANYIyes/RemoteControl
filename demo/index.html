@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>远程控制 Remote Control — 交互演示</title>
+<meta name="description" content="远程控制 Remote Control 纯前端交互演示，界面与真实 App 一致。安全：所有数据均为模拟，不会真正控制任何电脑。">
+<style>
+/* ========== 全局主题 ========== */
+:root {
+  --app-bg: #3D5AFE;       /* 真 App 背景色 (来自 ic_launcher_background.xml) */
+  --card-bg: #FFFFFF;
+  --primary: #3D5AFE;
+  --green: #00897B;
+  --purple: #5E35B1;
+  --orange: #D84315;
+  --red: #D32F2F;
+  --blue: #1976D2;
+  --text: #212121;
+  --muted: #757575;
+  --white-alpha-80: #CCFFFFFF;
+  --white-alpha-60: #99FFFFFF;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, "Segoe UI", "Roboto", "Microsoft YaHei", sans-serif;
+  background: linear-gradient(180deg, var(--app-bg) 0%, #304FFE 100%);
+  color: #fff;
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+.app { max-width: 420px; margin: 0 auto; }
+
+/* ========== 标题区 ========== */
+.title { font-size: 28px; font-weight: 700; letter-spacing: .5px; }
+.tvDevice { font-size: 13px; color: var(--white-alpha-80); margin-top: 4px; }
+.tvSerial { font-size: 11px; color: var(--white-alpha-60); margin-top: 2px; font-family: Consolas, monospace; }
+.tvStatus { font-size: 16px; font-weight: 600; margin-top: 12px; }
+
+/* ========== Material 卡片 ========== */
+.card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  margin-top: 12px;
+  padding: 16px;
+  color: var(--text);
+}
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+/* ========== 控件 ========== */
+.btn {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform .08s, box-shadow .15s;
+}
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--primary); color: #fff; }
+.btn.green { background: var(--green); color: #fff; }
+.btn.purple { background: var(--purple); color: #fff; }
+.btn.orange { background: var(--orange); color: #fff; }
+.btn.red { background: var(--red); color: #fff; }
+.btn.blue { background: var(--blue); color: #fff; }
+.btn.muted { background: #f5f5f5; color: var(--text); }
+
+.input {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+.row { display: flex; gap: 8px; }
+.row > * { flex: 1; }
+.space { width: 8px; }
+
+/* ========== 进程列表 ========== */
+.proc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.proc-count { color: rgba(0,0,0,.6); font-size: 12sp; }
+.refresh { background: none; border: none; cursor: pointer; padding: 4px; }
+.search-row { display: flex; gap: 8px; margin-top: 8px; }
+.search-row input { flex: 1; }
+.search-row button { flex-shrink: 0; }
+.proc-list { margin-top: 8px; max-height: 240px; overflow-y: auto; }
+.proc-item {
+  display: flex; align-items: center; padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.proc-item:last-child { border-bottom: none; }
+.proc-name { flex: 1; font-size: 14px; }
+.proc-pid { color: #888; font-size: 12px; margin-right: 8px; font-family: Consolas, monospace; }
+.proc-kill {
+  background: #fdecec; color: var(--red);
+  border: none; border-radius: 6px;
+  padding: 5px 10px; font-size: 11px; cursor: pointer;
+}
+
+/* 提示 */
+.hero-note {
+  text-align: center; margin: 20px 0 10px; padding: 10px;
+  background: rgba(255,255,255,.12); border-radius: 10px;
+  font-size: 12px; color: #fff;
+}
+.hero-note b { font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- 标题 -->
+  <div class="title">远程控制</div>
+  <div class="tvDevice" id="tvDevice">未连接</div>
+  <div class="tvSerial" id="tvSerial">序列号：--</div>
+  <div class="tvStatus" id="tvStatus">⚪ 未连接</div>
+
+  <!-- 连接卡片 -->
+  <div class="card">
+    <input class="input" id="etServer" placeholder="服务器地址 (如 wss://remote.641188.xyz)" value="wss://demo.641188.xyz" />
+    <button class="btn primary" id="btnConnect" onclick="app.connect()">🔌 连接</button>
+  </div>
+
+  <!-- 电源卡片 -->
+  <div class="card">
+    <div class="card-title">电源操作</div>
+    <div class="row">
+      <button class="btn red" onclick="app.power('shutdown')">⏻ 关机</button>
+      <div class="space"></div>
+      <button class="btn blue" onclick="app.power('reboot')">🔁 重启</button>
+    </div>
+  </div>
+
+  <!-- 扩展功能卡片 -->
+  <div class="card">
+    <div class="card-title">扩展功能</div>
+    <div class="row">
+      <button class="btn green" onclick="app.open('sysinfo')">📊 系统信息</button>
+      <div class="space"></div>
+      <button class="btn purple" onclick="app.open('files')">📁 文件</button>
+      <div class="space"></div>
+      <button class="btn orange" onclick="app.open('screen')">🖥 屏幕</button>
+    </div>
+  </div>
+
+  <!-- 进程卡片 -->
+  <div class="card" id="cardProcess">
+    <div class="proc-header">
+      <div style="font-size:18px;font-weight:600;color:var(--primary)">进程列表</div>
+      <div class="proc-count" id="procCount">0 个进程</div>
+      <button class="refresh" onclick="app.refreshProc()">🔄</button>
+    </div>
+    <div class="search-row">
+      <input class="input" id="etSearch" placeholder="搜索进程名或 PID" style="margin:0" oninput="app.searchProc()" />
+      <button class="btn muted" onclick="app.searchProc()">搜索</button>
+    </div>
+    <div class="proc-list" id="procList"></div>
+  </div>
+
+  <!-- 全屏子页面容器 -->
+  <div id="subPage" style="display:none; position:fixed; inset:0; background:var(--app-bg); padding:20px; overflow-y:auto" onclick="if(event.target===this) app.home()">
+    <div id="subContent" style="background:#fff; border-radius:16px; padding:20px; margin-top:40px"></div>
+    <button class="btn" style="margin-top:16px; background:#fff; color:#000" onclick="app.home()">← 返回</button>
+  </div>
+
+  <!-- 底部提示 -->
+  <div class="hero-note">
+    <b>纯前端模拟演示</b> · 所有数据均为模拟，<b>不会真正控制或操作任何电脑</b> · 安全零风险
+  </div>
+</div>
+
+<!-- 弹窗 -->
+<div id="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; z-index:100">
+  <div style="background:#fff; border-radius:16px; padding:24px; width:85%; max-width:320px; text-align:center; color:#212121">
+    <h3 id="modalTitle" style="margin-bottom:8px"></h3>
+    <p id="modalText" style="color:#666; margin-bottom:16px"></p>
+    <p style="font-size:11px; color:#b8860b; background:#fff4e5; border:1px solid #ffd9a8; padding:6px 10px; border-radius:6px">⚠️ 这是模拟演示 · 不会执行任何真实操作</p>
+    <div style="display:flex; gap:10px; margin-top:16px">
+      <button class="btn muted" id="modalCancelBtn" onclick="app.modalCancel()">取消</button>
+      <button class="btn red" id="modalOkBtn" onclick="app.modalOk()">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const app = {
+  connected: false,
+  _mockSerial: 'DEMO-ANDROID-001',
+  _processes: [],
+  init: function() {
+    this._processes = [
+      {pid:4,name:"System",mem:0.1}, {pid:240,name:"svchost.exe",mem:18.2},
+      {pid:512,name:"explorer.exe",mem:96.4},{pid:738,name:"chrome.exe",mem:312.8},
+      {pid:802,name:"node.exe",mem:154.3},{pid:946,name:"WeChat.exe",mem:288.1},
+      {pid:1211,name:"QQ.exe",mem:186.9},{pid:1532,name:"steam.exe",mem:410.5},
+      {pid:1756,name:"code.exe",mem:520.7},{pid:1903,name:"cloudflared.exe",mem:24.6},
+      {pid:2144,name:"msedge.exe",mem:268.4},{pid:2320,name:"Spotify.exe",mem:145.2}
+    ];
+    this.renderProc(this._processes);
+  },
+  connect: function() {
+    const btn=document.getElementById('btnConnect'), srv=document.getElementById('etServer');
+    if(!this.connected) {
+      btn.textContent='⏳ 连接中...'; btn.disabled=true;
+      setTimeout(()=>{
+        this.connected=true;
+        document.getElementById('tvStatus').textContent='🟢 已连接';
+        document.getElementById('tvDevice').textContent='Android 手机 (模拟)';
+        document.getElementById('tvSerial').textContent='序列号：'+this._mockSerial;
+        btn.textContent='✅ 已连接';
+        btn.style.background='#00C853'; btn.disabled=false;
+      }, 1200);
+    } else {
+      this.connected=false;
+      document.getElementById('tvStatus').textContent='⚪ 未连接';
+      document.getElementById('tvDevice').textContent='未连接';
+      document.getElementById('tvSerial').textContent='序列号：--';
+      btn.textContent='🔌 连接'; btn.style.background='';
+    }
+  },
+  power: function(action) {
+    const t=action==='shutdown'?'关机':'重启';
+    document.getElementById('modalTitle').textContent='⚠️ 确认'+t;
+    document.getElementById('modalText').textContent='确定要'+t+'电脑吗？';
+    document.getElementById('modalOkBtn').onclick=()=>{ this.doPower(action); };
+    document.getElementById('modal').style.display='flex';
+  },
+  doPower: function(action) {
+    document.getElementById('modal').style.display='none';
+    const sub=document.getElementById('subPage');
+    sub.style.display='block';
+    document.getElementById('subContent').innerHTML=
+      '<div style="text-align:center; padding:40px 20px">'+
+      '<div style="font-size:64px">💤</div>'+
+      '<h3 style="margin:16px 0">正在'+(action==='shutdown'?'关机':'重启')+'...</h3>'+
+      '<p style="color:#b88600; background:#fff4e5; padding:8px 12px; border-radius:8px; display:inline-block">'+
+      '⚠️ 仅模拟动画 · 未执行任何真实操作</p></div>'
+  },
+  open: function(page) {
+    const handlers={sysinfo:this.viewSysinfo, files:this.viewFiles, screen:this.viewScreen};
+    if(handlers[page]) { handlers[page].call(this); }
+  },
+  _sysinfoTimer: null,
+  viewSysinfo: function() {
+    const sub=document.getElementById('subPage'); sub.style.display='block';
+    const t='操作系统：Windows 10 专业版\n'+
+      'CPU 型号：Intel Core i7-12700H\n'+
+      'CPU 核心：14 核心 (6P+8E) 20 线程\n'+
+      '内存总量：16.0 GB DDR4-3200\n'+
+      '磁盘总量：512 GB NVMe SSD\n'+
+      'GPU: NVIDIA GeForce RTX 3060\n'+
+      '开机时长：3 天 6 小时 23 分钟\n'+
+      '\n'+
+      '实时负载：\n'+
+      'CPU: '+this.mockCpu+'%\n'+
+      '内存：'+this.mockMem+'%\n'+
+      '磁盘：'+this.mockDisk+'%';
+    document.getElementById('subContent').innerHTML=
+      '<div style="background:#3D5AFE; padding:12px 16px; margin-top:0">'+
+      '<div style="display:flex; align-items:center; justify-content:space-between">'+
+      '<span style="color:#fff; font-size:20px; font-weight:700">📊 系统信息</span>'+
+      '<button onclick="app.refreshSysinfo()" style="background:#1976D2; color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:14px; cursor:pointer">刷新</button>'+
+      '</div></div>'+
+      '<div id="tvSysInfo" style="padding:20px; color:#212121; font-size:15px; line-height:1.8; white-space:pre-line; font-family:monospace">'+t+'</div>';
+    if(this._sysinfoTimer) clearInterval(this._sysinfoTimer);
+    this._sysinfoTimer=setInterval(()=>this.refreshSysinfo(), 2000);
+  },
+  refreshSysinfo: function() {
+    const div=document.getElementById('tvSysInfo');
+    if(!div) return;
+    this.mockCpu=Math.floor(30+Math.random()*40);
+    this.mockMem=Math.floor(50+Math.random()*20);
+    this.mockDisk=Math.floor(65+Math.random()*10);
+    const t='操作系统：Windows 10 专业版\n'+
+      'CPU 型号：Intel Core i7-12700H\n'+
+      'CPU 核心：14 核心 (6P+8E) 20 线程\n'+
+      '内存总量：16.0 GB DDR4-3200\n'+
+      '磁盘总量：512 GB NVMe SSD\n'+
+      'GPU: NVIDIA GeForce RTX 3060\n'+
+      '开机时长：'+this.mockUptime+'\n'+
+      '\n'+
+      '实时负载：\n'+
+      'CPU: '+this.mockCpu+'%\n'+
+      '内存：'+this.mockMem+'%\n'+
+      '磁盘：'+this.mockDisk+'%';
+    div.textContent=t;
+  },
+  mockCpu: 45,
+  mockMem: 62,
+  mockDisk: 71,
+  mockUptime: '3 天 6 小时 23 分钟',
+  viewFiles: function() {
+    const sub=document.getElementById('subPage'); sub.style.display='block';
+    const files=[{n:'📁 Windows',d:true},{n:'📁 用户',d:true},{n:'📁 Program Files',d:true},
+    {n:'📄 report.pdf',d:false,s:'2.4 MB'},{n:'📄 photo.png',d:false,s:'1.1 MB'},{n:'📄 notes.txt',d:false,s:'12 KB'}];
+    document.getElementById('subContent').innerHTML=
+      '<div style="background:#3D5AFE; padding:12px 16px; border-radius:0; margin-top:0">'+
+      '<div style="display:flex; align-items:center; gap:12px">'+
+      '<button style="background:#2055FF; color:#fff; border:none; border-radius:6px; padding:8px 12px; font-size:14px; cursor:pointer">⬆ 上级</button>'+
+      '<span id="tvFilePath" style="color:#fff; font-size:14px; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap">C:\\Users\\Administrator</span>'+
+      '</div></div>'+
+      '<div style="max-height:320px; overflow-y:auto">'+
+      files.map(f=>'<div style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid #f0f0f0" onclick="'+(f.d?'this.style.background=\'#E3F2FD\'':'')+'">'+
+      '<span style="font-size:15px; color:#212121">'+(f.d?'<b>'+f.n+'</b>':f.n)+'</span>'+
+      (f.d?'<span style="color:#3D5AFE; font-size:13px">打开 ›</span>':'<span style="color:#888; font-size:12px">'+f.s+'</span>')+
+      '</div>').join('')+
+      '</div>';
+  },
+  _screenTimer: null,
+  _screenRunning: false,
+  _screenFrame: 0,
+  viewScreen: function() {
+    const sub=document.getElementById('subPage'); sub.style.display='block';
+    this._screenRunning=false;
+    this._screenFrame=0;
+    document.getElementById('subContent').innerHTML=
+      '<div style="background:#3D5AFE; padding:8px 12px; margin-top:0">'+
+      '<div style="display:flex; align-items:center; gap:12px">'+
+      '<span id="tvScreenInfo" style="color:#fff; font-size:14px; flex:1">未观看</span>'+
+      '<button id="btnScreenToggle" style="background:#1976D2; color:#fff; border:none; border-radius:6px; padding:6px 12px; font-size:14px; cursor:pointer" onclick="app.toggleScreen()">开始实时观看</button>'+
+      '</div></div>'+
+      '<div style="background:#000; width:100%; height:320px; display:flex; align-items:center; justify-content:center; margin-top:0">'+
+      '<canvas id="screenCanvas" width="320" height="200" style="max-width:100%; max-height:100%; display:none"></canvas>'+
+      '<span id="screenPlaceholder" style="color:#666; font-size:14px">点击"开始实时观看"后显示画面</span>'+
+      '</div>'+
+      '<div style="text-align:center; padding:6px; color:#888; font-size:11px">仅观看模式 · 低延迟实时画面 · 不可远程操作</div>';
+  },
+  toggleScreen: function() {
+    const btn=document.getElementById('btnScreenToggle'), info=document.getElementById('tvScreenInfo'), canvas=document.getElementById('screenCanvas'), ph=document.getElementById('screenPlaceholder');
+    if(this._screenRunning) {
+      this._screenRunning=false;
+      btn.textContent='开始实时观看';
+      btn.style.background='#1976D2';
+      info.textContent='未观看';
+      canvas.style.display='none';
+      ph.style.display='block';
+      if(this._screenTimer) clearInterval(this._screenTimer);
+    } else {
+      this._screenRunning=true;
+      btn.textContent='停止观看';
+      btn.style.background='#D32F2F';
+      info.textContent='正在观看 (模拟 5fps)';
+      canvas.style.display='block';
+      ph.style.display='none';
+      this._screenTimer=setInterval(()=>this.drawScreenFrame(), 200);
+    }
+  },
+  drawScreenFrame: function() {
+    const canvas=document.getElementById('screenCanvas');
+    if(!canvas) return;
+    const ctx=canvas.getContext('2d');
+    this._screenFrame++;
+    const g=ctx.createLinearGradient(0,0,320,200);
+    g.addColorStop(0, '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'));
+    g.addColorStop(1, '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'));
+    ctx.fillStyle=g; ctx.fillRect(0,0,320,200);
+    ctx.fillStyle='#fff'; ctx.font='14px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('帧 #'+this._screenFrame+' · 模拟画面', 160, 100);
+  },
+  refreshProc: function() { this.renderProc(this._processes); },
+  searchProc: function() {
+    const q=document.getElementById('etSearch').value.toLowerCase();
+    const list=this._processes.filter(p=>(p.name+String(p.pid)).toLowerCase().includes(q));
+    this.renderProc(list);
+  },
+  renderProc: function(list) {
+    document.getElementById('procCount').textContent=list.length+' 个进程';
+    const container=document.getElementById('procList');
+    container.innerHTML=list.map(p=>
+      '<div class="proc-item">'+
+      '<span class="proc-pid">#'+p.pid+'</span>'+
+      '<span class="proc-name">'+p.name+'</span>'+
+      '<span style="color:#888; font-size:12px; margin-right:8px">'+p.mem.toFixed(1)+'MB</span>'+
+      '<button class="proc-kill" onclick="app.kill('+p.pid+')">结束</button>'+
+      '</div>'
+    ).join('');
+  },
+  kill: function(pid) {
+    const p=this._processes.find(x=>x.pid===pid); if(!p) return;
+    p.name='✓ '+p.name+' (已结束)'; p.mem=0; this.searchProc();
+  },
+  home: function() { document.getElementById('subPage').style.display='none'; },
+  modalCancel: function() { document.getElementById('modal').style.display='none'; },
+  modalOk: function() { document.getElementById('modal').style.display='none'; }
+};
+document.addEventListener('DOMContentLoaded', ()=>app.init());
+</script>
+</body>
+</html>

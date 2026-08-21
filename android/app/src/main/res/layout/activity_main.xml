@@ -17,14 +17,32 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- 标题 -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- 标题 + 设置入口 (v2.0) -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
-                android:textColor="@android:color/white"
-                android:textSize="28sp"
-                android:textStyle="bold" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/app_name"
+                    android:textColor="@android:color/white"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <!-- v2.0: 设置按钮 -->
+                <ImageButton
+                    android:id="@+id/btnSettings"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/action_settings"
+                    android:src="@android:drawable/ic_menu_preferences"
+                    android:tint="@android:color/white" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvDevice"
@@ -139,6 +157,16 @@
                             android:text="@string/btn_reboot"
                             app:cornerRadius="10dp" />
                     </LinearLayout>
+
+                    <!-- v2.0: 定时关机 -->
+                    <Button
+                        android:id="@+id/btnSchedule"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="#FF5E35B1"
+                        android:text="@string/action_schedule_shutdown"
+                        app:cornerRadius="10dp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

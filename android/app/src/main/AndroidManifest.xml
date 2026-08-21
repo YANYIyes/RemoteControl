@@ -3,6 +3,13 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- v2.0: 通知 (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- v2.0: 前台服务 (后台常驻 + 监控推送) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:name=".RemoteControlApp"
@@ -12,6 +19,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RemoteControl"
         android:usesCleartextTraffic="true">
+
+
+        <!-- v2.0: 前台监控服务 (后台常驻 + 推送通知) -->
+        <service
+            android:name=".MonitorService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
         <activity
             android:name=".ScreenActivity"
@@ -26,6 +40,12 @@
 
         <activity
             android:name=".SystemInfoActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RemoteControl" />
+
+        <!-- v2.0: 设置界面 -->
+        <activity
+            android:name=".SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.RemoteControl" />
 

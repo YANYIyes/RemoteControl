@@ -24,6 +24,7 @@ class ScreenActivity : AppCompatActivity(), WsClient.Listener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppTheme.apply(this) // v2.0: 应用配色
         setContentView(R.layout.activity_screen)
 
         imageView = findViewById(R.id.ivScreen)

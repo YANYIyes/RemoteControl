@@ -25,6 +25,7 @@ class FileBrowserActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppTheme.apply(this) // v2.0: 应用配色
         setContentView(R.layout.activity_filebrowser)
 
         rv = findViewById(R.id.rvFiles)
