@@ -217,6 +217,17 @@ function handleMessage(ws, msgText, serial) {
       reply({ type: 'push.cancelSchedule', ...r, schedules: push.listSchedules(serial) });
       break;
     }
+    case 'push.startSysInfo': {
+      // v2.0: 系统信息实时推送 (每秒) —— App 打开系统信息页时调用
+      const r = push.startSysInfoPush(serial);
+      reply({ type: 'push.startSysInfo', ...r });
+      break;
+    }
+    case 'push.stopSysInfo': {
+      const r = push.stopSysInfoPush(serial);
+      reply({ type: 'push.stopSysInfo', ...r });
+      break;
+    }
     default:
       // 扩展功能模块 (系统信息/文件浏览/屏幕截图)
       handleFeatures(msg, ws, serial, reply, log).then(handled => {

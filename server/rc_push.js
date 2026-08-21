@@ -147,6 +147,47 @@ async function checkProcesses() {
   });
 }
 
+// ---------- 系统信息实时推送 (v2.0) ----------
+// 设备打开系统信息页时, 服务端每秒采集一次 sysinfo 并 push 给该设备
+const sysInfoTimers = new Map(); // serial -> interval
+
+async function collectSysInfo() {
+  const r = await run('powershell -NoProfile -ExecutionPolicy Bypass -File "' + path.join(ROOT, 'sysinfo.ps1') + '"');
+  if (r.code !== 0) return null;
+  try {
+    const start = r.stdout.indexOf('{');
+    return JSON.parse(r.stdout.slice(start).trim());
+  } catch (e) { return null; }
+}
+
+function pushSysInfo(serial) {
+  collectSysInfo().then(info => {
+    if (!info) return;
+    const d = devices.get(serial);
+    if (!d || !d.ws || d.ws.readyState !== 1) return;
+    try {
+      d.ws.send(JSON.stringify({ type: 'push.sysinfo', push: true, info, time: new Date().toISOString() }));
+    } catch (e) {}
+  });
+}
+
+function startSysInfoPush(serial) {
+  if (sysInfoTimers.has(serial)) return { ok: true, already: true };
+  const id = setInterval(() => pushSysInfo(serial), 1000); // 每秒实时
+  sysInfoTimers.set(serial, id);
+  pushSysInfo(serial); // 立即推一次
+  return { ok: true };
+}
+function stopSysInfoPush(serial) {
+  const id = sysInfoTimers.get(serial);
+  if (id) { clearInterval(id); sysInfoTimers.delete(serial); }
+  return { ok: true };
+}
+function stopSysInfoAll() {
+  sysInfoTimers.forEach(id => clearInterval(id));
+  sysInfoTimers.clear();
+}
+
 // ---------- 定时关机调度 ----------
 // schedules: [{ serial, time: Date, repeat: 'once'|'daily' }]
 const schedules = [];
@@ -214,10 +255,12 @@ function start(log) {
 function stop() {
   timers.forEach(t => clearInterval(t));
   timers = [];
+  stopSysInfoAll();
 }
 
 module.exports = {
   registerDevice, unregisterDevice, setConfig, getConfig,
   push, start, stop,
-  addSchedule, listSchedules, cancelSchedule
+  addSchedule, listSchedules, cancelSchedule,
+  startSysInfoPush, stopSysInfoPush
 };

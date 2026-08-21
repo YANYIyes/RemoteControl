@@ -186,9 +186,15 @@ class WsClient(private val context: Context) {
                     listener?.onStatus("error", msg.optString("error"))
                 }
                 else -> {
-                    // v2.0: 服务端主动推送 (push.*), 转发给 pushListener
-                    if (msg.optString("type").startsWith("push.")) {
-                        pushListener?.invoke(msg)
+                    // v2.0: 服务端主动推送 (push.*), 转发给对应监听器
+                    val ptype = msg.optString("type")
+                    if (ptype.startsWith("push.")) {
+                        // push.sysinfo 系统信息实时帧 → 单独转发给系统信息页
+                        if (ptype == "push.sysinfo") {
+                            sysInfoListener?.invoke(msg)
+                        } else {
+                            pushListener?.invoke(msg)
+                        }
                         return
                     }
                     // 业务响应: 带 seq 则可精确匹配; 否则按 type 匹配
@@ -277,4 +283,13 @@ class WsClient(private val context: Context) {
     suspend fun cancelSchedule(): JSONObject {
         return request("push.cancelSchedule")
     }
+
+    // v2.0: 系统信息实时推送 (服务端每秒推 push.sysinfo)
+    suspend fun startSysInfoPush(): JSONObject {
+        return request("push.startSysInfo")
+    }
+    suspend fun stopSysInfoPush(): JSONObject {
+        return request("push.stopSysInfo")
+    }
+    var sysInfoListener: ((JSONObject) -> Unit)? = null
 }

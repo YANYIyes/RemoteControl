@@ -2,15 +2,18 @@ package com.remotecontrol.app
 
 import android.os.Bundle
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
+/**
+ * v2.0 - 系统信息 (实时)
+ * 页面打开时请求服务端每秒推送 push.sysinfo 帧, 收到即刷新, 真正实时
+ */
 class SystemInfoActivity : AppCompatActivity() {
 
     private lateinit var tvInfo: TextView
@@ -27,6 +30,34 @@ class SystemInfoActivity : AppCompatActivity() {
         load()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // v2.0: 注册实时帧监听 + 通知服务端开始每秒推送
+        ws.sysInfoListener = this::onSysInfoFrame
+        if (ws.connected) {
+            lifecycleScope.launch {
+                try { ws.startSysInfoPush() } catch (_: Exception) {}
+            }
+        }
+    }
+
+    override fun onPause() {
+        // 离开页面: 停止服务端推送 + 注销监听
+        ws.sysInfoListener = null
+        if (ws.connected) {
+            lifecycleScope.launch {
+                try { ws.stopSysInfoPush() } catch (_: Exception) {}
+            }
+        }
+        super.onPause()
+    }
+
+    // 服务端每秒推来的实时系统信息帧
+    private fun onSysInfoFrame(msg: JSONObject) {
+        val info = msg.optJSONObject("info") ?: return
+        runOnUiThread { render(info) }
+    }
+
     private fun load() {
         if (!ws.connected) { toast("未连接"); return }
         tvInfo.text = "加载中…"
@@ -39,8 +70,8 @@ class SystemInfoActivity : AppCompatActivity() {
         }
     }
 
-    private fun render(r: org.json.JSONObject) {
-        val up = r.optJSONObject("upTime") ?: org.json.JSONObject()
+    private fun render(r: JSONObject) {
+        val up = r.optJSONObject("upTime") ?: JSONObject()
         val memTotal = r.optDouble("totalMem", 0.0)
         val memFree = r.optDouble("freeMem", 0.0)
         val memUsed = memTotal - memFree
