@@ -89,9 +89,13 @@ class SystemInfoActivity : AppCompatActivity() {
             sb.append("💽 磁盘\n")
             for (i in 0 until disks.length()) {
                 val d = disks.getJSONObject(i)
-                sb.append("  ").append(d.optString("drive", "?")).append("  已用 ")
-                    .append(fmt(d.optDouble("total", 0.0) - d.optDouble("free", 0.0)))
-                    .append(" / ").append(fmt(d.optDouble("total", 0.0))).append('\n')
+                // sysinfo.ps1 返回大写字段(Drive/Total/Free), 兼容小写
+                val drive = d.optString("Drive", d.optString("drive", "?"))
+                val total = d.optDouble("Total", d.optDouble("total", 0.0))
+                val free  = d.optDouble("Free",  d.optDouble("free", 0.0))
+                sb.append("  ").append(drive).append("  已用 ")
+                    .append(fmt(total - free))
+                    .append(" / ").append(fmt(total)).append('\n')
             }
         }
         tvInfo.text = sb.toString().trimEnd()

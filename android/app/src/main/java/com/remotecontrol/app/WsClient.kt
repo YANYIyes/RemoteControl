@@ -225,7 +225,7 @@ class WsClient(private val context: Context) {
             pendingSeq.remove(sKey)
             throw Exception("发送失败: 未连接")
         }
-        val r = withTimeoutOrNull(20000) { deferred.await() }
+        val r = withTimeoutOrNull(45000) { deferred.await() } // v2.0: 公网隧道延迟高, 加大超时
         pendingSeq.remove(sKey)
         return r ?: throw Exception("请求超时: $type")
     }
