@@ -71,7 +71,10 @@ class SystemInfoActivity : AppCompatActivity() {
     }
 
     private fun render(r: JSONObject) {
-        val up = r.optJSONObject("upTime") ?: JSONObject()
+        // 开机时长: sysinfo.ps1 返回平铺字段 upDays/upHours/upMins
+        val upDays = r.optInt("upDays", 0)
+        val upHours = r.optInt("upHours", 0)
+        val upMins = r.optInt("upMins", 0)
         val memTotal = r.optDouble("totalMem", 0.0)
         val memFree = r.optDouble("freeMem", 0.0)
         val memUsed = memTotal - memFree
@@ -80,8 +83,8 @@ class SystemInfoActivity : AppCompatActivity() {
         sb.append("🏷 主机名\n  ").append(r.optString("hostName", "?")).append('\n')
         sb.append("⚙️ CPU\n  ").append(r.optString("cpuName", "?")).append('\n')
         sb.append("📊 CPU负载\n  ").append(r.optDouble("cpuLoad", 0.0)).append("%\n")
-        sb.append("⏱ 开机时长\n  ").append(up.optInt("days", 0)).append("天 ")
-            .append(up.optInt("hours", 0)).append("小时 ").append(up.optInt("mins", 0)).append("分\n")
+        sb.append("⏱ 开机时长\n  ").append(upDays).append("天 ")
+            .append(upHours).append("小时 ").append(upMins).append("分\n")
         sb.append("💾 内存占用\n  ").append(fmt(memUsed)).append(" / ").append(fmt(memTotal))
             .append("  (已用 ").append(if (memTotal > 0) ((memUsed / memTotal * 100).toInt()) else 0).append("%)\n")
         val disks = r.optJSONArray("disks")
