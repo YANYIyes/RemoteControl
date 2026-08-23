@@ -92,4 +92,4 @@ cd scripts
 
 ## 📄 许可证
 
-MIT — 见 [LICENSE](./LICENSE)。
+GNU GPL v3（含附加非商用条款）— 见 [LICENSE](./LICENSE)。

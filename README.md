@@ -94,4 +94,4 @@ The script auto-checks Node, installs deps, generates an empty `whitelist.json`,
 
 ## 📄 License
 
-MIT — see [LICENSE](./LICENSE).
+GNU GPL v3 (with additional non-commercial terms) — see [LICENSE](./LICENSE).

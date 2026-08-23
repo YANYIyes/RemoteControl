@@ -69,7 +69,12 @@ const viewers = new Map(); // serial -> { ws, timer }
 
 function ensureShotProc(log) {
   if (shotProc && shotProc.exitCode === null) return shotProc;
-  shotProc = spawn('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', path.join(ROOT, 'screenshot.ps1')], {
+  // v2.x: 用 DXGI 高速截图 (screenshot_fast.py: 硬件捕获+并行编码+帧去重), 替代慢的 PowerShell GDI
+  const script = fs.existsSync(path.join(ROOT, 'screenshot_fast.py')) ? path.join(ROOT, 'screenshot_fast.py') : path.join(ROOT, 'screenshot.ps1');
+  const procPath = script.endsWith('.py');
+  shotProc = spawn(procPath ? 'python' : 'powershell', procPath
+      ? ['-u', script]
+      : ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script], {
     windowsHide: true, stdio: ['pipe', 'pipe', 'inherit']
   });
   shotProc.stdin.on('error', () => {});
@@ -107,7 +112,8 @@ function captureFrame(log) {
 // 开始一个设备的实时观看: 每 intervalMs 抓一帧发给 ws
 function startScreenView(ws, serial, intervalMs, log) {
   stopScreenView(serial);
-  intervalMs = Math.max(100, Math.min(1000, intervalMs || 200)); // 100ms~1s
+  // v2.x: 支持高频 (最小 ~11ms ≈ 90fps), DXGI截图+帧去重(静止不发) 对带宽友好
+  intervalMs = Math.max(11, Math.min(1000, intervalMs || 50));
   async function tick() {
     if (!ws || ws.readyState !== 1) { stopScreenView(serial); return; }
     const frame = await captureFrame(log);
